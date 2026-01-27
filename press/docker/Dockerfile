@@ -217,6 +217,7 @@ RUN --mount=type=cache,target=/home/frappe/.cache,uid=1000,gid=1000 python${PYTH
 RUN --mount=type=cache,target=/home/frappe/.cache,uid=1000,gid=1000 python${PYTHON_VERSION} -m pip install --upgrade setuptools
 
 RUN git config --global advice.detachedHead false
+RUN git config --global --add safe.directory '*'
 
 ENV PYTHONUNBUFFERED 1
 
@@ -272,6 +273,9 @@ RUN --mount=type=bind,source=app_updates/{{ app.app }},target=/home/frappe/conte
 
 COPY --chown=frappe:frappe config /home/frappe/frappe-bench/config
 COPY --chown=frappe:frappe apps.txt /home/frappe/frappe-bench/sites/apps.txt
+
+# Re-link all app assets to ensure apps with build-generated public dirs are included
+RUN bench build --hard-link `#stage-apps-link-assets`
 
 # Create custom mounts
 {% for m in doc.container_mounts %}
