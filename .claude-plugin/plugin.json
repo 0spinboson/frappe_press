@@ -1,0 +1,5 @@
+{
+  "name": "frappe-press",
+  "version": "1.0.0",
+  "description": "Commands for managing Frappe Press installations - query database, check builds, inspect sites, and run agent commands"
+}
