@@ -316,7 +316,8 @@ COPY --chown=frappe:frappe config /home/frappe/frappe-bench/config
 COPY --chown=frappe:frappe apps.txt /home/frappe/frappe-bench/sites/apps.txt
 
 # Re-link all app assets to ensure apps with build-generated public dirs are included
-RUN bench build --hard-link `#stage-apps-link-assets`
+# Use Python to call make_asset_dirs directly (avoids running app build commands)
+RUN cd sites && python${PYTHON_VERSION} -c "import frappe.build; frappe.build.make_asset_dirs(hard_link=True)" `#stage-apps-link-assets`
 
 # Create custom mounts
 {% for m in doc.container_mounts %}
