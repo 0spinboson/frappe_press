@@ -593,7 +593,7 @@ def get_python_path(dirpath: str) -> str:
 			requires_python = pyproject_data.get("project", {}).get("requires-python")
 			if requires_python:
 				version_spec = sv.SimpleSpec(requires_python)
-				if version_spec.match(sv.Version("3.14.0")):
+				if version_spec.match(sv.Version("3.14.0")) and os.path.exists("/usr/bin/python3.14"):
 					return "/usr/bin/python3.14"  # Temporary hardcoding until python 3.14 until we move to build server
 
 	return _get_python_path()
