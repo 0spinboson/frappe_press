@@ -47,7 +47,7 @@ def _init_ansible_collection_loader():
 # Initialize collection loader on module import
 _init_ansible_collection_loader()
 
-from press.press.doctype.ansible_play.ansible_play import AnsiblePlay
+from press.press.doctype.ansible_play.ansible_play import AnsiblePlay  # noqa: E402
 
 if typing.TYPE_CHECKING:
 	from press.press.doctype.agent_job.agent_job import AgentJob
