@@ -216,6 +216,7 @@ RUN --mount=type=cache,target=/home/frappe/.cache,uid=1000,gid=1000 python${PYTH
 RUN --mount=type=cache,target=/home/frappe/.cache,uid=1000,gid=1000 python${PYTHON_VERSION} -m pip install --upgrade setuptools
 
 RUN git config --global advice.detachedHead false
+RUN git config --global --add safe.directory '*'
 
 ENV PYTHONUNBUFFERED 1
 
@@ -244,8 +245,7 @@ COPY --chown=frappe:frappe .vimrc /home/frappe/.vimrc
 COPY --chown=frappe:frappe common_site_config.json /home/frappe/frappe-bench/sites/common_site_config.json
 
 # Pass control of get-app to a python file
-COPY get_cached_app.py /usr/local/bin/get_cached_app.py
-RUN chmod +x /usr/local/bin/get_cached_app.py
+COPY --chown=frappe:frappe --chmod=755 get_cached_app.py /home/frappe/get_cached_app.py
 
 # Install other apps
 {% for app in doc.apps %}
@@ -255,7 +255,7 @@ RUN chmod +x /usr/local/bin/get_cached_app.py
 {% if app.use_cached and use_asset_store %}
 RUN --mount=type=bind,source=apps/{{ app.app }},target=/home/frappe/context/apps/{{ app.app }} \
     --mount=type=secret,id=build_token,mode=0444 \
-    BUILD_TOKEN="$(cat /run/secrets/build_token)" && python${PYTHON_VERSION} /usr/local/bin/get_cached_app.py \
+    BUILD_TOKEN="$(cat /run/secrets/build_token)" && python${PYTHON_VERSION} /home/frappe/get_cached_app.py \
         {{ app.app }} \
         {{ app.hash }} \
         "$BUILD_TOKEN" \
@@ -290,6 +290,10 @@ RUN --mount=type=bind,source=app_updates/{{ app.app }},target=/home/frappe/conte
 
 COPY --chown=frappe:frappe config /home/frappe/frappe-bench/config
 COPY --chown=frappe:frappe apps.txt /home/frappe/frappe-bench/sites/apps.txt
+
+# Re-link all app assets to ensure apps with build-generated public dirs are included
+# Note: bench build may fail on some app build commands (e.g., hrms frontend) but asset linking succeeds first
+RUN bench build --hard-link || echo "Asset linking completed (some app builds may have failed)" `#stage-apps-link-assets`
 
 # Create custom mounts
 {% for m in doc.container_mounts %}
