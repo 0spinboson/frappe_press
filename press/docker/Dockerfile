@@ -291,9 +291,9 @@ RUN --mount=type=bind,source=app_updates/{{ app.app }},target=/home/frappe/conte
 COPY --chown=frappe:frappe config /home/frappe/frappe-bench/config
 COPY --chown=frappe:frappe apps.txt /home/frappe/frappe-bench/sites/apps.txt
 
-# Re-link all app assets to ensure apps with build-generated public dirs are included
-# Note: bench build may fail on some app build commands (e.g., hrms frontend) but asset linking succeeds first
-RUN bench build --hard-link || echo "Asset linking completed (some app builds may have failed)" `#stage-apps-link-assets`
+# Replace symlinks in sites/assets/ with real file copies
+# so that cp -LR during bench_init reliably copies them to the host mount
+RUN cd /home/frappe/frappe-bench/sites && ../env/bin/python -c "import frappe; frappe.init(''); from frappe.build import setup, make_asset_dirs; setup(); make_asset_dirs(hard_link=True)" `#stage-assets-copy`
 
 # Create custom mounts
 {% for m in doc.container_mounts %}
