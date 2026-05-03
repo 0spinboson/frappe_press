@@ -16,7 +16,7 @@
 			variant="solid"
 			icon-left="github"
 			label="Connect To GitHub"
-			:link="options.installation_url + '?state=' + state"
+			:link="installationLink"
 		/>
 	</div>
 	<div v-else class="space-y-4">
@@ -58,10 +58,7 @@
 		</FormControl>
 		<span class="text-sm text-gray-600">
 			Don't see your organization?
-			<Link
-				:href="options.installation_url + '?state=' + state"
-				class="font-medium"
-			>
+			<Link :href="installationLink" class="font-medium">
 				Add from GitHub
 			</Link>
 		</span>
@@ -101,34 +98,36 @@
 				Add from GitHub
 			</Link>
 		</p>
-		<FormControl
-			v-if="selectedGithubRepository"
-			type="combobox"
-			label="Choose Branch"
-			:options="branchOptions"
-			:modelValue="selectedBranch?.value"
-			@update:modelValue="
-				(optionValue) => {
-					selectedBranch = branchOptions.find(
-						(option) => option.value === optionValue,
-					);
-				}
-			"
-		>
-			<template #prefix>
-				<FeatherIcon name="git-branch" class="mr-2 h-4 w-4" />
-			</template>
-		</FormControl>
+
+		<div v-if="selectedGithubRepository" class="space-y-1.5">
+			<div class="text-xs text-ink-gray-5">Choose Branch</div>
+			<Combobox
+				v-if="selectedGithubRepository"
+				allow-custom-value
+				:options="branchOptions"
+				:modelValue="selectedBranch?.value"
+				@update:modelValue="onChangeBranchDebounce"
+			>
+				<template #prefix>
+					<FeatherIcon name="git-branch" class="mr-2 h-4 w-4" />
+				</template>
+			</Combobox>
+		</div>
 	</div>
 </template>
 
 <script>
+import { Combobox, debounce } from 'frappe-ui';
+
 export default {
+	components: {
+		Combobox,
+	},
 	emits: ['validateApp', 'fieldChange'],
 	data() {
 		return {
 			app: {},
-			selectedBranch: '',
+			selectedBranch: null,
 			selectedGithubUser: null,
 			selectedGithubRepository: null,
 		};
@@ -171,6 +170,11 @@ export default {
 		options() {
 			return {
 				url: 'press.api.github.options',
+				makeParams() {
+					return {
+						redirect_url: window.location.href,
+					};
+				},
 				auto: true,
 			};
 		},
@@ -182,15 +186,32 @@ export default {
 		clearAccessToken() {
 			return {
 				url: 'press.api.github.clear_token_and_get_installation_url',
-				onSuccess(installation_url) {
-					window.location.href = installation_url + '?state=' + this.state;
+				makeParams() {
+					return {
+						redirect_url: window.location.href,
+					};
+				},
+				onSuccess(installationData) {
+					window.location.href = this.getInstallationLink(installationData);
 				},
 			};
+		},
+	},
+	methods: {
+		getInstallationLink(installationData) {
+			if (!installationData?.installation_url || !installationData?.state) {
+				return null;
+			}
+
+			return `${installationData.installation_url}?state=${installationData.state}`;
 		},
 	},
 	computed: {
 		options() {
 			return this.$resources.options.data;
+		},
+		installationLink() {
+			return this.getInstallationLink(this.options);
 		},
 		appOwner() {
 			return this.selectedGithubUser?.login;
@@ -219,15 +240,15 @@ export default {
 			);
 		},
 		requiresReAuth() {
-			return this.$resources.options?.error?.messages.includes(
-				'Bad credentials',
+			return this.$resources.options?.error?.messages.some((msg) =>
+				msg.includes('Bad credentials'),
 			);
 		},
-		state() {
-			let location = window.location.href;
-			let state = { team: this.$team.name, url: location };
-			return btoa(JSON.stringify(state));
-		},
+	},
+	created() {
+		this.onChangeBranchDebounce = debounce((val) => {
+			this.selectedBranch = { label: val, value: val };
+		}, 500);
 	},
 };
 </script>

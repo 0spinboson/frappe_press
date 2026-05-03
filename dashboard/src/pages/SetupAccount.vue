@@ -74,12 +74,20 @@
 							/>
 							<FormControl
 								type="select"
-								:options="countries"
+								:options="countryOptions"
 								v-if="!isInvitation"
 								label="Country"
 								v-model="country"
 								variant="outline"
 								required
+							/>
+							<PhoneInput
+								v-if="!isInvitation"
+								label="Phone Number(Optional)"
+								v-model="phoneNumber"
+								:countries="countries"
+								:country="country"
+								placeholder="9876543210"
 							/>
 						</div>
 						<ErrorMessage
@@ -144,6 +152,7 @@
 import LoginBox from '../components/auth/LoginBox.vue';
 import Link from '@/components/Link.vue';
 import Form from '@/components/Form.vue';
+import PhoneInput from '@/components/PhoneInput.vue';
 
 const detailsSharedProducts = [
 	'erpnext',
@@ -161,6 +170,7 @@ export default {
 		LoginBox,
 		Link,
 		Form,
+		PhoneInput,
 	},
 	props: ['requestKey', 'joinRequest'],
 	data() {
@@ -183,6 +193,7 @@ export default {
 			signupValues: {},
 			detailsSharedProducts,
 			shareDetailsConsent: false,
+			phoneNumber: '',
 		};
 	},
 	resources: {
@@ -223,6 +234,7 @@ export default {
 					first_name: this.firstName,
 					last_name: this.lastName,
 					country: this.country,
+					phone: this.phoneNumber || null,
 					is_invitation: this.isInvitation,
 					user_exists: this.userExists,
 					invited_by_parent_team: this.invitedByParentTeam,
@@ -281,6 +293,9 @@ export default {
 				this.saasProduct &&
 				this.detailsSharedProducts.includes(this.saasProduct.name.toLowerCase())
 			);
+		},
+		countryOptions() {
+			return this.countries.map((c) => c.name);
 		},
 	},
 	methods: {

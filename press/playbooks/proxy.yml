@@ -13,5 +13,6 @@
     - role: agent
     - role: proxy
     - role: node_exporter
+    - role: user_ssh_certificate
     - role: filebeat
     - role: clamav

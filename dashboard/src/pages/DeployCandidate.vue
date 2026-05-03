@@ -7,7 +7,7 @@
 			:title="error.title"
 			@done="$resources.errors.reload()"
 		/>
-		<AlertAddressableError
+		<!-- <AlertAddressableError
 			v-for="w in warnings"
 			:key="w.name"
 			class="mb-5"
@@ -15,7 +15,7 @@
 			:title="w.title"
 			type="warning"
 			@done="$resources.warnings.reload()"
-		/>
+		/> -->
 
 		<AlertBanner
 			v-if="alertMessage && !error && !warnings"
@@ -42,7 +42,7 @@
 						v-if="deploy && deploy.status === 'Running'"
 						theme="red"
 					>
-						Stop Build
+						Stop Deploy
 					</Button>
 					<Button
 						@click="$resources.deploy.reload()"

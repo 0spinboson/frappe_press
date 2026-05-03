@@ -19,7 +19,10 @@
 					:doc="$resources.document?.doc"
 					:error="$resources.document.get.error"
 				/>
-				<div class="space-x-2" v-if="$resources.document?.doc">
+				<div
+					class="space-x-2 flex items-center"
+					v-if="$resources.document?.doc"
+				>
 					<ActionButton
 						v-for="action in actions"
 						v-bind="action"
@@ -39,7 +42,7 @@
 			<template #tab-item="{ tab }">
 				<router-link
 					:to="{ name: tab.routeName }"
-					class="flex items-center py-2.5 gap-1.5 text-base text-ink-gray-5 duration-300 ease-in-out hover:text-ink-gray-9 data-[state=active]:text-ink-gray-9"
+					class="flex whitespace-nowrap items-center py-2.5 gap-1.5 text-base text-ink-gray-5 duration-300 ease-in-out hover:text-ink-gray-9 data-[state=active]:text-ink-gray-9"
 				>
 					<component v-if="tab.icon" :is="tab.icon" class="size-4"> </component>
 
